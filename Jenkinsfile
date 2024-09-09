@@ -2,14 +2,13 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USERNAME = credentials('dockerHub').username
-        DOCKER_PASSWORD = credentials('dockerHub').password
+        DOCKER_CREDENTIALS = credentials('dockerHub') // This will bind both username and password
         DOCKER_REGISTRY = "olmarsh"
         DOCKER_IMAGE = "${DOCKER_REGISTRY}/test-docker:latest"
     }
 
     stages {
-       stage('Install Dependencies') {
+        stage('Install Dependencies') {
             steps {
                 script {
                     // Install node dependencies
@@ -31,7 +30,7 @@ pipeline {
             steps {
                 script {
                     // Login to DockerHub
-                    sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
+                    sh "echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin"
                     
                     // Push the Docker image to the registry
                     sh "docker push ${DOCKER_IMAGE}"
