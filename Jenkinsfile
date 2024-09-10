@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS = credentials('dockerHub') // This will bind both username and password
         DOCKER_REGISTRY = "olmarsh"
         DOCKER_IMAGE = "${DOCKER_REGISTRY}/test-docker:latest"
     }
@@ -29,11 +28,14 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Login to DockerHub
-                    sh "echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin"
-                    
-                    // Push the Docker image to the registry
-                    sh "docker push ${DOCKER_IMAGE}"
+                    // Use withCredentials block to securely pass Docker credentials
+                    withCredentials([usernamePassword(credentialsId: 'dockerHub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // Login to DockerHub
+                        sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
+                        
+                        // Push the Docker image to the registry
+                        sh "docker push ${DOCKER_IMAGE}"
+                    }
                 }
             }
         }
